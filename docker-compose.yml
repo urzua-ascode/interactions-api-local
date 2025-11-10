@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  # Servicio de la API (construido desde nuestro Dockerfile)
+  api:
+    build: .
+    container_name: interactions-api
+    ports:
+      - "8080:8080" # Mapea el puerto local 8080 al 8080 del contenedor
+    environment:
+      # URL para que la API (boto3) encuentre DynamoDB Local
+      - DYNAMODB_ENDPOINT_URL=http://dynamodb-local:8000
+      - INTERACTIONS_TABLE_NAME=Interactions
+    depends_on:
+      - dynamodb-local # Asegura que la BD inicie primero
+
+  # Servicio de DynamoDB Local
+  dynamodb-local:
+    image: amazon/dynamodb-local:latest
+    container_name: dynamodb-local
+    ports:
+      - "8000:8000" # Mapea el puerto local 8000 para acceso (ej. load_data.py)
+    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath /data"
+    volumes:
+      - ./dynamodb_data:/data # Persistir datos localmente (opcional)
+
+volumes:
+  dynamodb_data:
